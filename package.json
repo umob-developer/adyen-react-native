@@ -1,6 +1,6 @@
 {
   "name": "@adyen/react-native",
-  "version": "2.0.0-local.1",
+  "version": "2.0.0-umob.1",
   "description": "Wraps Adyen Checkout Drop-In and Components for iOS and Android for convenient use with React Native",
   "license": "MIT",
   "author": "Adyen",
