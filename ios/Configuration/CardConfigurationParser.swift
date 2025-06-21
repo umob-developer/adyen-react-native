@@ -8,14 +8,12 @@ import Adyen
 
 public struct CardConfigurationParser {
 
-    private var dict: [String: Any]
+    private var dict: NSDictionary
+    private unowned var delegate: AddressLookupProvider
 
-    public init(configuration: NSDictionary) {
-        guard let configuration = configuration as? [String: Any] else {
-            self.dict = [:]
-            return
-        }
-        if let configurationNode = configuration[CardKeys.rootKey] as? [String: Any] {
+    public init(configuration: NSDictionary, delegate: AddressLookupProvider) {
+        self.delegate = delegate
+        if let configurationNode = configuration[CardKeys.rootKey] as? NSDictionary {
             self.dict = configurationNode
         } else {
             self.dict = configuration
@@ -49,7 +47,7 @@ public struct CardConfigurationParser {
             return .none
         }
 
-        return .init(rawValue: value)
+        return .init(rawValue: value, delegate: delegate)
     }
 
     var kcpVisibility: CardComponent.FieldVisibility {
@@ -75,17 +73,20 @@ public struct CardConfigurationParser {
         return strings
     }
 
-    // TODO: add installmentConfiguration: InstallmentConfiguration?
+    var storedCardConfiguration: StoredCardConfiguration {
+        var storedCardConfiguration = StoredCardConfiguration()
+        storedCardConfiguration.showsSecurityCodeField = showsStoredSecurityCodeField
+        return storedCardConfiguration
+    }
 
-    public var configuration: CardComponent.Configuration {
-        var storedConfiguration = StoredCardConfiguration()
-        storedConfiguration.showsSecurityCodeField = showsStoredSecurityCodeField
-
+    var billingAddressConfiguration: BillingAddressConfiguration {
         var billingAddressConfiguration = BillingAddressConfiguration()
         billingAddressConfiguration.countryCodes = billingAddressCountryCodes
         billingAddressConfiguration.mode = addressVisibility
+        return billingAddressConfiguration
+    }
 
-        var soredCardConfiguration = StoredCardConfiguration()
+    public var configuration: CardComponent.Configuration {
         return .init(style: FormComponentStyle(),
                      shopperInformation: nil,
                      localizationParameters: nil,
@@ -94,27 +95,19 @@ public struct CardConfigurationParser {
                      showsSecurityCodeField: showsSecurityCodeField,
                      koreanAuthenticationMode: kcpVisibility,
                      socialSecurityNumberMode: socialSecurityVisibility,
-                     storedCardConfiguration: soredCardConfiguration,
+                     storedCardConfiguration: storedCardConfiguration,
                      allowedCardTypes: allowedCardTypes,
                      installmentConfiguration: nil,
                      billingAddress: billingAddressConfiguration)
     }
 
     public var dropinConfiguration: DropInComponent.Card {
-        var storedConfiguration = StoredCardConfiguration()
-        storedConfiguration.showsSecurityCodeField = showsStoredSecurityCodeField
-
-        var billingAddressConfiguration = BillingAddressConfiguration()
-        billingAddressConfiguration.countryCodes = billingAddressCountryCodes
-        billingAddressConfiguration.mode = addressVisibility
-
-        var soredCardConfiguration = StoredCardConfiguration()
         return .init(showsHolderNameField: showsHolderNameField,
                      showsStorePaymentMethodField: showsStorePaymentMethodField,
                      showsSecurityCodeField: showsSecurityCodeField,
                      koreanAuthenticationMode: kcpVisibility,
                      socialSecurityNumberMode: socialSecurityVisibility,
-                     storedCardConfiguration: soredCardConfiguration,
+                     storedCardConfiguration: storedCardConfiguration,
                      allowedCardTypes: allowedCardTypes,
                      installmentConfiguration: nil,
                      billingAddress: billingAddressConfiguration)
@@ -137,12 +130,14 @@ public struct CardConfigurationParser {
 
 extension CardComponent.AddressFormType {
 
-    internal init(rawValue: String) {
+    internal init(rawValue: String, delegate: AddressLookupProvider) {
         switch rawValue.lowercased() {
         case "postalcode", "postal_code", "postal":
             self = .postalCode
         case "full":
             self = .full
+        case "lookup":
+            self = .lookup(provider: delegate)
         default:
             self = .none
         }

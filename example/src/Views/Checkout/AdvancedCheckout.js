@@ -15,12 +15,12 @@ const AdvancedCheckout = ({navigation}) => {
   const [paymentMethods, setPaymentMethods] = useState(undefined);
 
   useEffect(() => {
-    refreshPaymentMethods(configuration).catch((e) => {
+    refreshPaymentMethods(configuration).catch(e => {
       console.error(e);
     });
   }, []);
 
-  const refreshPaymentMethods = async (configuration) => {
+  const refreshPaymentMethods = async configuration => {
     const paymentMethods = await ApiClient.paymentMethods(configuration);
     setPaymentMethods(paymentMethods);
   };
@@ -140,9 +140,8 @@ const AdvancedCheckout = ({navigation}) => {
           onSubmit={didSubmit}
           onAdditionalDetails={didProvide}
           onComplete={didComplete}
-          onError={didFail}
-        >
-          <PaymentMethods isSession={false} />
+          onError={didFail}>
+          <PaymentMethods showComponents={true} />
         </AdyenCheckout>
       ) : (
         <ActivityIndicator size="large" style={Styles.page} />

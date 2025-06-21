@@ -15,6 +15,16 @@ internal enum Events: String, CaseIterable {
     case didProvide = "didProvideCallback"
     case didComplete = "didCompleteCallback"
     case didFail = "didFailCallback"
+    case didUpdateAddress = "didUpdateAddressCallback"
+    case didConfirmAddress = "didConfirmAddressCallback"
+    case didDisableStoredPaymentMethod = "didDisableStoredPaymentMethodCallback"
+    case didCheckBalance = "didCheckBalanceCallback"
+    case didRequestOrder = "didRequestOrderCallback"
+    case didCancelOrder = "didCancelOrderCallback"
+    case didBinLookup = "didBinLookupCallback"
+    case didChangeBinValue = "didChangeBinValueCallback"
+
+    static var coreEvents: [Events] { [.didFail, .didSubmit, .didProvide, .didComplete] }
 }
 
 internal enum Keys {
@@ -37,6 +47,7 @@ internal enum DropInKeys: SubConfig {
     static var rootKey = "dropin"
     static var showPreselectedStoredPaymentMethod = "showPreselectedStoredPaymentMethod"
     static var skipListWhenSinglePaymentMethod = "skipListWhenSinglePaymentMethod"
+    static var showRemovePaymentMethodButton = "showRemovePaymentMethodButton"
     static var title = "title"
 }
 
@@ -66,6 +77,17 @@ internal enum ApplePayKeys: SubConfig {
     static var shippingType = "shippingType"
     static var supportedCountries = "supportedCountries"
     static var shippingMethods = "shippingMethods"
+    static var recurringPaymentRequest="recurringPaymentRequest"
+
+    enum Recurring {
+        static var paymentDescription = "description"
+        static var regularBilling = "regularBilling"
+        static var managementURL = "managementURL"
+
+        static var billingAgreement = "billingAgreement"
+        static var trialBilling = "trialBilling"
+        static var tokenNotificationURL = "tokenNotificationURL"
+    }
 
     enum Contact {
         static var phoneNumber = "phoneNumber"
@@ -97,6 +119,40 @@ internal enum ApplePayKeys: SubConfig {
         static var startDate = "startDate"
         static var endDate = "endDate"
     }
+
+    enum RecurringPaymentSummaryItem {
+        static var label = "label"
+        static var amount = "amount"
+
+        static var startDate = "startDate"
+        static var endDate = "endDate"
+        static var intervalUnit = "intervalUnit"
+        static var intervalCount = "intervalCount"
+    }
+
+    enum CalendarUnit: String {
+        case minute, hour, day, month, year
+
+        var systemValue: NSCalendar.Unit {
+            switch self {
+            case .minute:
+                return .minute
+            case .hour:
+                return .hour
+            case .day:
+                return .day
+            case .month:
+                return .month
+            case .year:
+                return .year
+            }
+        }
+    }
+}
+
+internal enum PartialPaymentKey: SubConfig {
+    static var rootKey = "partialPayment"
+    static var pinRequired = "pinRequired"
 }
 
 internal enum StyleKeys: SubConfig {

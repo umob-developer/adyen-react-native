@@ -17,7 +17,7 @@ import {ENVIRONMENT} from '../../Configuration';
 import {payByID} from '../../Utilities/payByID';
 import {useAppContext} from '../../Utilities/AppContext';
 
-const PaymentMethods = ({isSession}) => {
+const PaymentMethods = ({showComponents}) => {
   const {configuration} = useAppContext();
   const {start, paymentMethods: paymentMethodsResponse} = useAdyenCheckout();
   const regularPaymentMethods = paymentMethodsResponse?.paymentMethods ?? [];
@@ -26,14 +26,36 @@ const PaymentMethods = ({isSession}) => {
   const isNotReady = paymentMethodsResponse === undefined;
   const isDarkMode = useColorScheme() === 'dark';
 
-  const subtitle = (
+  const storedSubtitle = (
     /** @type {import('@adyen/react-native').StoredPaymentMethod} */ pm,
   ) => {
     switch (pm.type) {
       case 'scheme':
-        return `**** **** **** ${pm['lastFour']} (exp ${pm['expiryMonth']}/${pm['expiryYear']})`;
+        return `exp ${pm.expiryMonth}/${pm.expiryYear}`;
       default:
-        return `${pm.id}`;
+        return undefined;
+    }
+  };
+
+  const storedTitle = (
+    /** @type {import('@adyen/react-native').StoredPaymentMethod} */ pm,
+  ) => {
+    switch (pm.type) {
+      case 'scheme':
+        return `**** **** **** ${pm.lastFour}`;
+      default:
+        return `${pm.name}`;
+    }
+  };
+
+  const storedIcon = (
+    /** @type {import('@adyen/react-native').StoredPaymentMethod} */ pm,
+  ) => {
+    switch (pm.type) {
+      case 'scheme':
+        return `${pm.brand ?? 'card'}`;
+      default:
+        return `${pm.type}`;
     }
   };
 
@@ -50,21 +72,20 @@ const PaymentMethods = ({isSession}) => {
           />
         </View>
 
-        {!isSession ? ( // Sessions do not support components (yet)
+        {showComponents ? ( // Sessions do not support components (yet)
           <View>
             {storedPaymentMethods ? (
               <View>
                 <Text style={isDarkMode ? Styles.textDark : Styles.textLight}>
                   Stored payments
                 </Text>
-                {storedPaymentMethods.map((p) => {
-                  const iconName = p.type === 'scheme' ? 'card' : p.type;
+                {storedPaymentMethods.map(p => {
                   return (
                     <View key={`${p.id}`}>
                       <PaymentMethodButton
-                        title={`${p.name}`}
-                        subtitle={subtitle(p)}
-                        icon={iconName}
+                        title={storedTitle(p)}
+                        subtitle={storedSubtitle(p)}
+                        icon={storedIcon(p)}
                         onPress={async () => {
                           try {
                             let cvv =
@@ -92,7 +113,7 @@ const PaymentMethods = ({isSession}) => {
             <Text style={isDarkMode ? Styles.textDark : Styles.textLight}>
               Components
             </Text>
-            {regularPaymentMethods.map((p) => {
+            {regularPaymentMethods.map(p => {
               const iconName = p.type === 'scheme' ? 'card' : p.type;
               return (
                 <View key={`${p.type + p.name}`}>
@@ -123,8 +144,7 @@ const PaymentMethodButton = ({onPress, title, subtitle, icon}) => {
     <TouchableHighlight
       onPress={onPress}
       style={Styles.btnClickContain}
-      underlayColor="#042417"
-    >
+      underlayColor="#042417">
       <View style={Styles.btnContainer}>
         <Image source={{uri: iconURI}} style={Styles.btnIcon} />
         <View style={Styles.content}>

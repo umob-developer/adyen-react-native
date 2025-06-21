@@ -69,8 +69,7 @@ const CseView = ({navigation}) => {
               style={[
                 isDarkMode ? Styles.textDark : Styles.textLight,
                 Styles.slash,
-              ]}
-            >{`/`}</Text>
+              ]}>{`/`}</Text>
             <TextInput
               style={isDarkMode ? Styles.textInputDark : Styles.textInputLight}
               inputMode={'numeric'}

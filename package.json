@@ -43,22 +43,20 @@
     "bootstrap": "git clean -fxd && yarn && cd example && yarn"
   },
   "devDependencies": {
-    "@expo/config-plugins": "^7.8.4",
-    "@react-native-community/eslint-config": "^3.2.0",
+    "@expo/config-plugins": "^8.0.4",
+    "@react-native/eslint-config": "^0.74.1",
     "@tsconfig/node10": "^1.0.7",
-    "@tsconfig/react-native": "^3.0.0",
     "@types/react": "^18.0.29",
     "@types/react-test-renderer": "^18.0.0",
-    "eslint": "^8.0.0",
+    "eslint": "^9.0.0",
     "pod-install": "^0.2.0",
     "react": "^18.2.0",
-    "react-native": "^0.71.14",
-    "react-native-builder-bob": "^0.23.1",
+    "react-native": "^0.74.2",
+    "react-native-builder-bob": "^0.23.2",
     "typescript": "^5.0.2"
   },
   "peerDependencies": {
-    "@types/react": "*",
-    "expo": ">=47",
+    "expo": ">=52",
     "react": "*",
     "react-native": "*"
   },
@@ -82,26 +80,17 @@
       "react-hooks"
     ],
     "extends": [
-      "@react-native-community",
+      "@react-native",
       "prettier"
     ],
     "rules": {
       "react-hooks/rules-of-hooks": "error",
-      "react-hooks/exhaustive-deps": "warn",
-      "prettier/prettier": [
-        "error",
-        {
-          "quoteProps": "consistent",
-          "singleQuote": true,
-          "tabWidth": 2,
-          "trailingComma": "es5",
-          "useTabs": false
-        }
-      ]
+      "react-hooks/exhaustive-deps": "warn"
     }
   },
   "eslintIgnore": [
     "node_modules/",
-    "lib/"
+    "lib/",
+    "plugin/build/"
   ]
 }

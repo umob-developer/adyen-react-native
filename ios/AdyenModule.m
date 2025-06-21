@@ -10,16 +10,36 @@
 
 @interface RCT_EXTERN_MODULE(AdyenDropIn, NSObject)
 
-RCT_EXTERN_METHOD(open:(NSDictionary *)paymentMethods
-                  configuration:(NSDictionary *)configuration)
+RCT_EXTERN_METHOD(open:(nonnull NSDictionary *)paymentMethods
+                  configuration:(nonnull NSDictionary *)configuration)
 
 RCT_EXTERN_METHOD(hide:(nonnull NSNumber *)success
-                  event:(NSDictionary *)event)
+                  event:(nullable NSDictionary *)event)
 
-RCT_EXTERN_METHOD(handle:(NSDictionary *)action)
+RCT_EXTERN_METHOD(handle:(nonnull NSDictionary *)action)
 
 RCT_EXTERN_METHOD(getReturnURL:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(update:(nullable NSArray *)results)
+
+RCT_EXTERN_METHOD(confirm:(nonnull NSNumber *)success
+                  address:(nullable NSDictionary *)address)
+
+RCT_EXTERN_METHOD(removeStored:(nonnull NSNumber *)success)
+
+RCT_EXTERN_METHOD(provideBalance:(nonnull NSNumber *)success
+                  balance:(nullable NSDictionary *)balance
+                  error:(nullable NSDictionary *)error)
+
+RCT_EXTERN_METHOD(provideOrder:(nonnull NSNumber *)success
+                  order:(nullable NSDictionary *)order
+                  error:(nullable NSDictionary *)error)
+
+RCT_EXTERN_METHOD(providePaymentMethods:(nonnull NSDictionary *)paymentMethods
+                  order:(nullable NSDictionary *)order)
+
+
 
 @end
 
@@ -72,9 +92,6 @@ RCT_EXTERN_METHOD(encryptBin:(NSString *)bin
 RCT_EXTERN_METHOD(createSession:(NSDictionary *)sessionModelJSON
                   configuration:(NSDictionary *)configurationJSON
                   resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
-
-RCT_EXTERN_METHOD(getReturnURL:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(hide:(nonnull NSNumber *)success

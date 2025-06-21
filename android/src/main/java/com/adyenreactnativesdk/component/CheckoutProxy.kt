@@ -6,8 +6,12 @@
 
 package com.adyenreactnativesdk.component
 
-import com.adyen.checkout.components.core.PaymentComponentState
+import com.adyen.checkout.card.BinLookupData
+import com.adyen.checkout.components.core.AddressLookupCallback
+import com.adyen.checkout.components.core.StoredPaymentMethod
 import com.adyen.checkout.core.exception.CheckoutException
+import com.adyen.checkout.dropin.BaseDropInServiceContract
+import com.adyen.checkout.dropin.DropInServiceContract
 import com.adyen.checkout.sessions.core.SessionPaymentResult
 import com.facebook.react.bridge.ReadableMap
 import org.json.JSONObject
@@ -15,7 +19,10 @@ import java.lang.ref.WeakReference
 
 class CheckoutProxy private constructor() {
     private var _componentListener = WeakReference<ComponentEventListener>(null)
-    private var _moduleListener = WeakReference<ModuleEventListener>(null)
+
+    var sessionService: BaseDropInServiceContract? = null
+
+    var advancedService: BaseDropInServiceContract? = null
 
     var componentListener: ComponentEventListener?
         get() = _componentListener.get()
@@ -23,25 +30,17 @@ class CheckoutProxy private constructor() {
             _componentListener = WeakReference(value)
         }
 
-    var moduleListener: ModuleEventListener?
-        get() = _moduleListener.get()
-        set(value) {
-            _moduleListener = WeakReference(value)
-        }
-
-    /** All events coming from Android SDK */
-    interface ComponentEventListener {
-        fun onSubmit(state: PaymentComponentState<*>)
-        fun onAdditionalData(jsonObject: JSONObject)
+    /** Base events coming from Components */
+    interface ComponentEventListener: DropInServiceContract {
         fun onException(exception: CheckoutException)
         fun onFinished(result: SessionPaymentResult)
+        fun onRemove(storedPaymentMethod: StoredPaymentMethod)
     }
 
-    /** All events coming from React Native */
-    interface ModuleEventListener {
-        fun onAction(jsonObject: JSONObject)
-        fun onFail(map: ReadableMap?)
-        fun onComplete(message: String)
+    /** Events coming from Card Component */
+    interface CardComponentEventListener: ComponentEventListener {
+        fun onBinValue(binValue: String)
+        fun onBinLookup(data: List<BinLookupData>)
     }
 
     companion object {

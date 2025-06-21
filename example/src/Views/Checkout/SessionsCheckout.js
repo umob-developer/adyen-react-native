@@ -16,20 +16,17 @@ const SessionsCheckout = ({navigation}) => {
   const [session, setSession] = useState(undefined);
 
   useEffect(() => {
-    refreshSession(configuration).catch((e) => {
+    refreshSession(configuration).catch(e => {
       console.error(e);
     });
   }, []);
 
-  const refreshSession = async (configuration) => {
+  const refreshSession = async configuration => {
     const returnUrl = Platform.select({
       ios: ENVIRONMENT.returnUrl,
-      android: await AdyenDropIn.getReturnURL()
+      android: await AdyenDropIn.getReturnURL(),
     });
-    const session = await ApiClient.requestSesion(
-      configuration,
-      returnUrl
-    );
+    const session = await ApiClient.requestSession(configuration, returnUrl);
     setSession(session);
   };
 
@@ -39,7 +36,7 @@ const SessionsCheckout = ({navigation}) => {
       /** @type {import('@adyen/react-native').AdyenActionComponent} */
       nativeComponent,
     ) => {
-      console.log(`didComplete :`);
+      console.log(`didComplete : ${JSON.stringify(result, null, " ")}`);
       processResult(result, nativeComponent);
     },
     [],
@@ -106,9 +103,8 @@ const SessionsCheckout = ({navigation}) => {
           config={checkoutConfiguration(configuration)}
           session={session}
           onComplete={didComplete}
-          onError={didFail}
-        >
-          <PaymentMethods isSession={true} />
+          onError={didFail}>
+          <PaymentMethods showComponents={false} />
         </AdyenCheckout>
       ) : (
         <ActivityIndicator size="large" style={Styles.page} />

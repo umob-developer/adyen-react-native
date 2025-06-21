@@ -1,7 +1,7 @@
 // @ts-check
 
-import { LogBox } from 'react-native';
-import { ENVIRONMENT, CHANNEL } from '../Configuration';
+import {LogBox} from 'react-native';
+import {ENVIRONMENT, CHANNEL} from '../Configuration';
 
 LogBox.ignoreLogs(['Require cycle:']);
 
@@ -14,34 +14,85 @@ class ApiClient {
       ...parseAmount(configuration, data),
       ...serverConfiguration,
       ...paymentConfiguration,
-      returnUrl: returnUrl
+      returnUrl: returnUrl,
     };
 
     return ApiClient.makeRequest(ENVIRONMENT.url + 'payments', body);
   }
 
-  static paymentDetails = (data) => {
+  static paymentDetails = data => {
     return ApiClient.makeRequest(ENVIRONMENT.url + 'payments/details', data);
   };
 
-  static requestSesion = (configuration, returnUrl) => {
+  static requestSession = (configuration, returnUrl) => {
     const body = {
       ...parseConfig(configuration),
       ...parseAmount(configuration),
       ...serverConfiguration,
       ...paymentConfiguration,
-      returnUrl: returnUrl
+      returnUrl: returnUrl,
+      showRemovePaymentMethodButton: true,
     };
     return ApiClient.makeRequest(ENVIRONMENT.url + 'sessions', body);
   };
 
-  static paymentMethods = (configuration) => {
+  static paymentMethods = (configuration, order) => {
     const body = {
       ...parseConfig(configuration),
       ...parseAmount(configuration),
       ...serverConfiguration,
+      ...(order && { order: parseOrder(order) }),
     };
     return ApiClient.makeRequest(ENVIRONMENT.url + 'paymentMethods', body);
+  };
+
+  static tryRemoveStoredCard = async (id, configuration) => {
+    let {merchantAccount, shopperReference} = configuration;
+    const url =
+      ENVIRONMENT.url +
+      `storedPaymentMethods/${id}?merchantAccount=${merchantAccount}&shopperReference=${shopperReference}`;
+    const request = new Request(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': ENVIRONMENT.apiKey,
+      },
+    });
+    try {
+      const response = await fetch(request);
+      const pspReference = response.headers.get('pspreference');
+      console.debug(`PSP Reference - ${pspReference}`);
+      return response.status == 204;
+    } catch {
+      return false;
+    }
+  };
+
+  static checkBalance = async (paymentData, configuration) => {
+    const body = {
+      paymentMethod: paymentData.paymentMethod,
+      ...parseAmount(configuration),
+      merchantAccount: configuration.merchantAccount,
+      reference: serverConfiguration.reference,
+    };
+    return ApiClient.makeRequest(ENVIRONMENT.url + 'paymentMethods/balance', body);
+  };
+
+  static requestOrder = async (configuration) => {
+    const body = {
+      ...parseAmount(configuration),
+      merchantAccount: configuration.merchantAccount,
+      reference: serverConfiguration.reference,
+    };
+    return ApiClient.makeRequest(ENVIRONMENT.url + 'orders', body);
+  };
+
+  static cancelOrder = async (order, configuration) => {
+    const body = {
+      ...(order && { order: parseOrder(order) }),
+      merchantAccount: configuration.merchantAccount,
+    };
+    return ApiClient.makeRequest(ENVIRONMENT.url + 'orders/cancel', body);
   };
 
   /** @private */
@@ -59,10 +110,12 @@ class ApiClient {
     });
 
     const response = await fetch(request);
-    const pspReference = response.headers.get("pspreference");
+    const pspReference = response.headers.get('pspreference');
     console.debug(`PSP Reference - ${pspReference}`);
     const payload = await response.json();
-    if (response.ok) return payload;
+    if (response.ok) {
+      return payload;
+    }
     console.warn(`Error - ${JSON.stringify(payload, null, ' ')}`);
     throw new Error(`Network Error ${response.status}:
           ${payload.message ?? JSON.stringify(payload)}`);
@@ -77,7 +130,11 @@ const serverConfiguration = {
 };
 
 const paymentConfiguration = {
-  additionalData: { allow3DS2: true },
+  authenticationData: {
+    threeDSRequestData: {
+      nativeThreeDS: 'preferred',
+    },
+  },
   lineItems: [
     {
       quantity: '1',
@@ -102,7 +159,8 @@ const paymentConfiguration = {
       imageUrl: 'URL_TO_PICTURE_OF_PURCHASED_ITEM',
     },
   ],
-  recurringProcessingModel: 'CardOnFile'
+  recurringProcessingModel: 'CardOnFile',
+  shopperInteraction: 'Ecommerce',
 };
 
 const parseAmount = (configuration, data) => ({
@@ -122,4 +180,12 @@ const parseConfig = ({
   countryCode,
   shopperReference,
   shopperLocale,
+});
+
+const parseOrder = ({
+  orderData,
+  pspReference,
+}) => ({
+  orderData,
+  pspReference
 });

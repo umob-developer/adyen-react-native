@@ -18,7 +18,7 @@ class GooglePayConfigurationParser(config: ReadableMap) {
 
     companion object {
         internal const val TAG = "GooglePayConfigParser"
-        internal const val GOOGLEPAY_KEY = "googlepay"
+        internal const val ROOT_KEY = "googlepay"
         internal const val MERCHANT_ACCOUNT_KEY = "merchantAccount"
         internal const val ALLOWED_CARD_NETWORKS_KEY = "allowedCardNetworks"
         internal const val ALLOWED_AUTH_METHODS_KEY = "allowedAuthMethods"
@@ -29,15 +29,15 @@ class GooglePayConfigurationParser(config: ReadableMap) {
         internal const val EMAIL_REQUIRED_KEY = "emailRequired"
         internal const val SHIPPING_ADDRESS_REQUIRED_KEY = "shippingAddressRequired"
         internal const val EXISTING_PAYMENT_METHOD_REQUIRED_KEY = "existingPaymentMethodRequired"
-        internal const val BILLING_ADDRESS_PARAMETERS_KEY = "shippingAddressParameters"
-        internal const val SHIPPING_ADDRESS_PARAMETERS_KEY = "billingAddressParameters"
+        internal const val BILLING_ADDRESS_PARAMETERS_KEY = "billingAddressParameters"
+        internal const val SHIPPING_ADDRESS_PARAMETERS_KEY = "shippingAddressParameters"
     }
 
     private var config: ReadableMap
 
     init {
-        if (config.hasKey(GOOGLEPAY_KEY)) {
-            this.config = config.getMap(GOOGLEPAY_KEY)!!
+        if (config.hasKey(ROOT_KEY)) {
+            this.config = config.getMap(ROOT_KEY)!!
         } else {
             this.config = config
         }

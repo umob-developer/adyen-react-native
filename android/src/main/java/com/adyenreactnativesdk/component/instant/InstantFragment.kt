@@ -56,11 +56,11 @@ class InstantFragment(
             ?: { Log.e(TAG, FRAGMENT_ERROR) }
     }
 
-    companion object {
+    companion object : IInstantFragment {
         private const val PAYMENT_METHOD_TYPE_EXTRA = "PAYMENT_METHOD_TYPE_EXTRA"
         internal const val TAG = "InstantFragment"
 
-        fun show(
+        override fun show(
             fragmentManager: FragmentManager,
             configuration: CheckoutConfiguration,
             paymentMethod: PaymentMethod,
@@ -73,11 +73,11 @@ class InstantFragment(
             }.show(fragmentManager, TAG)
         }
 
-        fun handle(fragmentManager: FragmentManager, action: Action) {
+        override fun handle(fragmentManager: FragmentManager, action: Action) {
             handle(fragmentManager, action, TAG)
         }
 
-        fun hide(fragmentManager: FragmentManager) {
+        override fun hide(fragmentManager: FragmentManager) {
             hide(fragmentManager, TAG)
         }
 
@@ -86,3 +86,4 @@ class InstantFragment(
     override fun runComponent() { /* No action needed */
     }
 }
+

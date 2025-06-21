@@ -11,15 +11,19 @@ import com.adyen.checkout.adyen3ds2.Cancelled3DS2Exception
 import com.adyen.checkout.adyen3ds2.adyen3DS2
 import com.adyen.checkout.bcmc.bcmc
 import com.adyen.checkout.card.card
+import com.adyen.checkout.components.core.ActionComponentData
 import com.adyen.checkout.components.core.CheckoutConfiguration
+import com.adyen.checkout.components.core.Order
 import com.adyen.checkout.components.core.OrderResponse
 import com.adyen.checkout.components.core.PaymentComponentData
 import com.adyen.checkout.components.core.PaymentComponentState
 import com.adyen.checkout.components.core.PaymentMethod
 import com.adyen.checkout.components.core.PaymentMethodsApiResponse
+import com.adyen.checkout.components.core.StoredPaymentMethod
 import com.adyen.checkout.core.exception.CancellationException
 import com.adyen.checkout.core.exception.CheckoutException
 import com.adyen.checkout.dropin.dropIn
+import com.adyen.checkout.giftcard.giftCard
 import com.adyen.checkout.googlepay.GooglePayComponentState
 import com.adyen.checkout.googlepay.googlePay
 import com.adyen.checkout.sessions.core.CheckoutSession
@@ -35,6 +39,7 @@ import com.adyenreactnativesdk.configuration.AnalyticsParser
 import com.adyenreactnativesdk.configuration.CardConfigurationParser
 import com.adyenreactnativesdk.configuration.DropInConfigurationParser
 import com.adyenreactnativesdk.configuration.GooglePayConfigurationParser
+import com.adyenreactnativesdk.configuration.PartialPaymentParser
 import com.adyenreactnativesdk.configuration.RootConfigurationParser
 import com.adyenreactnativesdk.configuration.ThreeDSConfigurationParser
 import com.adyenreactnativesdk.util.AdyenConstants
@@ -59,6 +64,8 @@ abstract class BaseModule(context: ReactApplicationContext?) : ReactContextBaseJ
             sendErrorEvent(e)
         }
     }
+
+    internal var integration = if (session == null) "advanced" else "session"
 
     protected fun sendErrorEvent(error: Exception) {
         reactApplicationContext.getJSModule(RCTDeviceEventEmitter::class.java)
@@ -170,8 +177,30 @@ abstract class BaseModule(context: ReactApplicationContext?) : ReactContextBaseJ
         sendFinishEvent(updatedResult)
     }
 
-    override fun onAdditionalData(jsonObject: JSONObject) {
+    override fun onAdditionalDetails(actionComponentData: ActionComponentData) {
+        val jsonObject = ActionComponentData.SERIALIZER.serialize(actionComponentData)
         sendEvent(DID_PROVIDE, jsonObject)
+    }
+
+    override fun onRemove(storedPaymentMethod: StoredPaymentMethod) {
+        throw NotImplementedError("An operation only available for DropIn.")
+    }
+
+    override fun onBalanceCheck(paymentComponentState: PaymentComponentState<*>) {
+        val jsonObject = PaymentComponentData.SERIALIZER.serialize(paymentComponentState.data)
+        sendEvent(DID_CHECK_BALANCE, jsonObject)
+    }
+
+    override fun onOrderRequest() {
+        sendEvent(DID_REQUEST_ORDER, JSONObject())
+    }
+
+    override fun onOrderCancel(order: Order, shouldUpdatePaymentMethods: Boolean) {
+        val jsonObject = JSONObject().apply {
+            this.put(ORDER_KEY, Order.SERIALIZER.serialize(order))
+            this.put(SHOULD_UPDATE_PAYMENT_METHODS_KEY, shouldUpdatePaymentMethods)
+        }
+        sendEvent(DID_CANCEL_ORDER, jsonObject)
     }
 
     protected fun getCheckoutConfiguration(json: ReadableMap): CheckoutConfiguration {
@@ -207,6 +236,10 @@ abstract class BaseModule(context: ReactApplicationContext?) : ReactContextBaseJ
                 val parser = ThreeDSConfigurationParser(json)
                 parser.applyConfiguration(this)
             }
+            giftCard {
+                val parser = PartialPaymentParser(json)
+                setPinRequired(parser.pinRequired)
+            }
         }
     }
 
@@ -222,13 +255,25 @@ abstract class BaseModule(context: ReactApplicationContext?) : ReactContextBaseJ
         const val DID_PROVIDE = "didProvideCallback"
         const val DID_FAILED = "didFailCallback"
         const val DID_SUBMIT = "didSubmitCallback"
+        const val DID_UPDATE_ADDRESS = "didUpdateAddressCallback"
+        const val DID_CONFIRM_ADDRESS = "didConfirmAddressCallback"
+        const val DID_DISABLE_STORED_PAYMENT_METHOD = "didDisableStoredPaymentMethodCallback"
+        const val DID_CHECK_BALANCE = "didCheckBalanceCallback"
+        const val DID_REQUEST_ORDER = "didRequestOrderCallback"
+        const val DID_CANCEL_ORDER = "didCancelOrderCallback"
+        const val DID_BIN_LOOKUP = "didBinLookupCallback"
+        const val DID_CHANGE_BIN_VALUE = "didChangeBinValueCallback"
+
+
         const val RESULT_CODE_PRESENTED = "PresentToShopper"
+
         private const val VOUCHER_RESULT_CODE = "finish_with_action"
         private const val RESULT_CODE_KEY = "resultCode"
         private const val ORDER_KEY = "order"
         private const val SESSION_RESULT_KEY = "sessionResult"
         private const val SESSION_DATA_KEY = "sessionData"
         private const val SESSION_ID_KEY = "sessionId"
+        private const val SHOULD_UPDATE_PAYMENT_METHODS_KEY = "shouldUpdatePaymentMethods"
 
         @JvmStatic
         protected var session: CheckoutSession? = null

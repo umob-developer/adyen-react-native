@@ -8,14 +8,10 @@ import Adyen
 
 public struct DropInConfigurationParser {
 
-    private var dict: [String: Any]
+    private var dict: NSDictionary
 
     public init(configuration: NSDictionary) {
-        guard let configuration = configuration as? [String: Any] else {
-            self.dict = [:]
-            return
-        }
-        if let configurationNode = configuration[DropInKeys.rootKey] as? [String: Any] {
+        if let configurationNode = configuration[DropInKeys.rootKey] as? NSDictionary {
             self.dict = configurationNode
         } else {
             self.dict = configuration
@@ -36,13 +32,22 @@ public struct DropInConfigurationParser {
         return value
     }
 
+    var showRemovePaymentMethodButton: Bool {
+        guard let value = dict[DropInKeys.showRemovePaymentMethodButton] as? Bool else {
+            return false
+        }
+        return value
+    }
+
     var title: String? {
         dict[DropInKeys.title] as? String
     }
 
     public var configuration: DropInComponent.Configuration {
-        .init(allowsSkippingPaymentList: skipListWhenSinglePaymentMethod,
-              allowPreselectedPaymentView: showPreselectedStoredPaymentMethod)
+        let configuration = DropInComponent.Configuration(allowsSkippingPaymentList: skipListWhenSinglePaymentMethod,
+                                                                 allowPreselectedPaymentView: showPreselectedStoredPaymentMethod)
+        configuration.paymentMethodsList.allowDisablingStoredPaymentMethods = showRemovePaymentMethodButton
+        return configuration
     }
 
 }

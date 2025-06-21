@@ -1,14 +1,14 @@
-import { AdyenCSE, AdyenAction } from '@adyen/react-native';
-import { ENVIRONMENT } from '../Configuration';
+import {AdyenCSE, AdyenAction} from '@adyen/react-native';
+import {ENVIRONMENT} from '../Configuration';
 import ApiClient from './APIClient';
-import { checkoutConfiguration } from './AppContext';
+import {checkoutConfiguration} from './AppContext';
 
 export async function payWithCard(unencryptedCard, configuration) {
   const encryptedCard = await AdyenCSE.encryptCard(
     unencryptedCard,
-    ENVIRONMENT.publicKey
+    ENVIRONMENT.publicKey,
   );
-  const data = {
+  const paymentData = {
     paymentMethod: {
       type: 'scheme',
       encryptedCardNumber: encryptedCard.number,
@@ -19,11 +19,18 @@ export async function payWithCard(unencryptedCard, configuration) {
     },
   };
 
-  let result = await ApiClient.payments(data, configuration, ENVIRONMENT.returnUrl);
+  let result = await ApiClient.payments(
+    paymentData,
+    configuration,
+    ENVIRONMENT.returnUrl,
+  );
   if (result.action) {
     const actionConfiguration = checkoutConfiguration(configuration);
-    const data = await AdyenAction.handle(result.action, actionConfiguration);
-    result = await ApiClient.paymentDetails(data);
+    const actionData = await AdyenAction.handle(
+      result.action,
+      actionConfiguration,
+    );
+    result = await ApiClient.paymentDetails(actionData);
   }
   return result;
 }

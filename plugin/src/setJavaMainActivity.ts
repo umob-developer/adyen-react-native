@@ -20,19 +20,21 @@ export function setJavaMainActivity(contents: string): string {
     contents = contents.replace(
       /}\n$/,
       '\n' +
-      '  @Override\n' +
-      '  public void onNewIntent(Intent intent) {\n' +
-      '    super.onNewIntent(intent);\n' +
-      '    AdyenCheckout.handleIntent(intent);\n' +
-      '  }\n' +
-      '}\n'
+        '  @Override\n' +
+        '  public void onNewIntent(Intent intent) {\n' +
+        '    super.onNewIntent(intent);\n' +
+        '    AdyenCheckout.handleIntent(intent);\n' +
+        '  }\n' +
+        '}\n'
     );
   }
 
   // on ActivityResult
-  if (contents.includes(
-    'public void onActivityResult(int requestCode, int resultCode, Intent data) {'
-  )) {
+  if (
+    contents.includes(
+      'public void onActivityResult(int requestCode, int resultCode, Intent data) {'
+    )
+  ) {
     contents = contents.replace(
       'super.onActivityResult(requestCode, resultCode, data);\n  }',
       'super.onActivityResult(requestCode, resultCode, data);\n    AdyenCheckout.handleActivityResult(requestCode, resultCode, data);\n  }'
@@ -41,12 +43,12 @@ export function setJavaMainActivity(contents: string): string {
     contents = contents.replace(
       /}\n$/,
       '\n' +
-      '  @Override\n' +
-      '  public void onActivityResult(int requestCode, int resultCode, Intent data) {\n' +
-      '    super.onActivityResult(requestCode, resultCode, data);\n' +
-      '    AdyenCheckout.handleActivityResult(requestCode, resultCode, data);\n' +
-      '  }\n' +
-      '}\n'
+        '  @Override\n' +
+        '  public void onActivityResult(int requestCode, int resultCode, Intent data) {\n' +
+        '    super.onActivityResult(requestCode, resultCode, data);\n' +
+        '    AdyenCheckout.handleActivityResult(requestCode, resultCode, data);\n' +
+        '  }\n' +
+        '}\n'
     );
   }
 
