@@ -82,6 +82,12 @@ export type AdyenCheckoutProps = {
    * @param component - The Adyen component instance that completed the interaction.
    */
   onComplete?: (result: SessionsResult, component: AdyenComponent) => void;
+
+  /**
+   * Event callback, called when the session is ready to interact with adyen checkout (drop-in payment methods, open apple/google pay)
+   */
+  onReady?: (ready: boolean) => void
+
   /** Inner components */
   children: ReactNode;
 };
@@ -94,6 +100,7 @@ export const AdyenCheckout: React.FC<AdyenCheckoutProps> = ({
   onError,
   onAdditionalDetails,
   onComplete,
+  onReady,
   children,
 }) => {
   const subscriptions = useRef<EmitterSubscription[]>([]);
@@ -110,6 +117,23 @@ export const AdyenCheckout: React.FC<AdyenCheckoutProps> = ({
   function removeEventListeners() {
     subscriptions.current.forEach((s: EmitterSubscription) => s.remove());
   }
+
+  useEffect(() => {
+    if (!session) {
+      onReady?.(false);
+      return;
+    }
+
+    try {
+      const methods = paymentMethods ?? sessionStorage?.paymentMethods;
+      const currentPaymentMethods = checkPaymentMethodsResponse(methods);
+
+      onReady?.(Boolean(currentPaymentMethods));
+    } catch {
+      onReady?.(false);
+    }
+  }, [paymentMethods, sessionStorage?.paymentMethods, onReady, session]);
+
 
   useEffect(() => {
     return () => {
